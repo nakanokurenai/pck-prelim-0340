@@ -193,6 +193,12 @@ int main () {
     while (true) {
         auto section_map = get_great_sections(input);
         if (section_map.size() == 0) break;
+
+        for (int a : input) {
+            std::cerr << a << ", ";
+        }
+        std::cerr << "cnt: " << cnt << std::endl;
+
         auto section = (*section_map.begin()).second;
         if (section.size() == 1) {
             cnt += input[section[0]];
