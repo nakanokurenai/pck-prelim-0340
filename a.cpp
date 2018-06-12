@@ -39,7 +39,6 @@ int main () {
             max_value = value;
         }
         max.push_back(index);
-        std::cerr << "Found max as " << value << ", on [" << index << "]" << std::endl;
     }
 
     if (max.size() == 0) {
@@ -73,19 +72,116 @@ int main () {
         sections[key_lower] = section_lower;
     }
 
-    std::cerr << "[!] Found " << sections.size() << " sections" << std::endl;
-    for (auto iterator = sections.begin(); iterator != sections.end(); ++iterator) {
+    /**
+     * scores sections and get 
+     */
+    // score with counting zero
+    int score_zero = -2;
+    std::map<std::string, Section> sections_zero_scored;
+    for (auto iterator = sections.begin(); iterator != sections.end(); iterator++) {
         Section section = iterator->second;
-        std::cerr << "* [";
-        std::cerr << section[0];
+        int score = 0;
+        int size = section.size();
+        if (input[section[0]] == 0) {
+            score -= 1;
+        }
+        if (size > 1 && input[section[1]] == 0) {
+            score -= 1;
+        }
+
+        if (score_zero > score) {
+            continue;
+        }
+        if (score > score_zero) {
+            score_zero = score;
+            sections_zero_scored.erase(sections_zero_scored.begin(), sections_zero_scored.end());
+        }
+        sections_zero_scored[iterator->first] = section;
+    }
+
+    // show state
+    std::cerr << "[!] Found " << sections_zero_scored.size() << " sections that has least zero" << std::endl;
+    for (auto iterator = sections_zero_scored.begin(); iterator != sections_zero_scored.end(); iterator++) {
+        Section section = iterator->second;
+        std::cerr << "  - [";
+        std::cerr << section[0] << "<" << input[section[0]] << ">";
         if (section.size() > 1) {
-            std::cerr << ", " << section[1];
+            std::cerr << ", " << section[1] << "<" << input[section[1]] << ">";
         }
         std::cerr << "]" << std::endl;
     }
 
-    // scoreling sections
+    // score with components
+    int score_component = 1;
+    std::map<std::string, Section> sections_scored_component;
+    for (auto iterator = sections_zero_scored.begin(); iterator != sections_zero_scored.end(); iterator++) {
+        Section section = iterator->second;
+        std::size_t score = section.size();
 
+        if (score_component > score) {
+            continue;
+        }
+        if (score > score_component) {
+            std::cerr << "Update with " <<score <<std::endl;
+            score_component = score;
+            sections_scored_component.erase(sections_scored_component.begin(), sections_scored_component.end());
+        }
+        sections_scored_component[iterator->first] = section;
+    }
+
+    std::cerr << "[!] Found " << sections_scored_component.size() << " sections that has maximum components" << std::endl;
+    for (auto iterator = sections_scored_component.begin(); iterator != sections_scored_component.end(); iterator++) {
+        Section section = iterator->second;
+        std::cerr << "  - [";
+        std::cerr << section[0] << "<" << input[section[0]] << ">";
+        if (section.size() > 1) {
+            std::cerr << ", " << section[1] << "<" << input[section[1]] << ">";
+        }
+        std::cerr << "]" << std::endl;
+    }
+
+    // score with difficulty to delete
+    bool score_difficulty = false;
+    std::map<std::string, Section> sections_scored_difficulty;
+    for (auto iterator = sections_scored_component.begin(); iterator != sections_scored_component.end(); iterator++) {
+        std::cerr << score_difficulty << std::endl;
+        Section section = iterator->second;
+        int max = input_size - 1;
+        bool score = true;
+
+        // index pairs that has case [0, x] or [1, x]
+        if (section[0] < 2) {
+            if (section[0] == 0 || (section[0] == 1 && input[0] != 0)) {
+                score = false;   
+            }
+        }
+
+        // index pairs that has case [x, max] or [x, max-1]
+        if (max - 2 < section[1]) {
+            if (section[1] == max) {
+                score = false;
+            }
+        }
+
+        if (!score && score_difficulty) break;
+
+        if (score && !score_difficulty) {
+            score_difficulty = score;
+            sections_scored_difficulty.erase(sections_scored_difficulty.begin(), sections_scored_difficulty.end());
+        }
+        sections_scored_difficulty[iterator->first] = section;
+    }   
+
+    std::cerr << "[!] Found " << sections_scored_difficulty.size() << " sections with harder difficulty" << std::endl;
+    for (auto iterator = sections_scored_difficulty.begin(); iterator != sections_scored_difficulty.end(); iterator++) {
+        Section section = iterator->second;
+        std::cerr << "  - [";
+        std::cerr << section[0] << "<" << input[section[0]] << ">";
+        if (section.size() > 1) {
+            std::cerr << ", " << section[1] << "<" << input[section[1]] << ">";
+        }
+        std::cerr << "]" << std::endl;
+    }
 
     return 0;
 }
