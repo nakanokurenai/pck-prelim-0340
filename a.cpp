@@ -20,10 +20,8 @@ std::map<std::string, Section> get_great_sections (Input input) {
     Max max;
 
     for (int index = 0; index < input_size; index++) {
+        if (input[index] == 0) continue;
         int value = 1;
-        if (index == 0 && index == input_size -1) {
-            if (input[index] == 0) value = 0;
-        }
         if ((index != 0) && (index != input_size-1)) {
             value = input[index];
         }
