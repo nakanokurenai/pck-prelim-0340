@@ -63,6 +63,17 @@ std::map<std::string, Section> get_great_sections (Input input) {
         sections[key_lower] = section_lower;
     }
 
+    std::cerr << "[!] Found " << sections.size() << " sections" << std::endl;
+    for (auto iterator = sections.begin(); iterator != sections.end(); iterator++) {
+        Section section = iterator->second;
+        std::cerr << "  - [";
+        std::cerr << section[0] << "<" << input[section[0]] << ">";
+        if (section.size() > 1) {
+            std::cerr << ", " << section[1] << "<" << input[section[1]] << ">";
+        }
+        std::cerr << "]" << std::endl;
+    }
+
     /**
      * scores sections and get 
      */
@@ -113,7 +124,6 @@ std::map<std::string, Section> get_great_sections (Input input) {
             continue;
         }
         if (score > score_component) {
-            std::cerr << "Update with " <<score <<std::endl;
             score_component = score;
             sections_scored_component.erase(sections_scored_component.begin(), sections_scored_component.end());
         }
@@ -212,6 +222,8 @@ std::map<std::string, Section> get_great_sections (Input input) {
         std::cerr << "]" << std::endl;
     }
 
+    std::cerr << std::endl;
+
     return sections_scored_distance;
 }
 
@@ -231,7 +243,22 @@ int main () {
         exit(1);
     }
 
-    get_great_sections(input);
+    int cnt = 0;
 
-    return 0;
+    while (true) {
+        auto section_map = get_great_sections(input);
+        if (section_map.size() == 0) break;
+        auto section = (*section_map.begin()).second;
+        if (section.size() == 1) {
+            cnt += input[section[0]];
+            input[section[0]] = 0;
+            continue;
+        }
+        int remnum = std::min(input[section[0]], input[section[1]]);
+        cnt += remnum * 2;
+        input[section[0]] -= remnum;
+        input[section[1]] -= remnum;
+    }
+
+    std::cout << cnt << std::endl;
 }
