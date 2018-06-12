@@ -3,29 +3,19 @@
 #include <utility>
 #include <iterator>
 #include <map>
+#include <algorithm>
 
 typedef std::vector<int> Max;
 typedef std::vector<int> Input;
 typedef std::vector<int> Section;
 typedef std::map<int, int> ScoreResult;
 
-int main () {
-    int input_size;
-    std::cin >> input_size;
-    Input input(0);
+std::map<std::string, Section> get_great_sections (Input input) {
+    std::size_t input_size = input.size();
 
-    for (int i = 0; i < input_size; i++) {
-        int tmp;
-        std::cin >> tmp;
-        input.push_back(tmp);
-    }
-
-    if (input.size() != input_size) {
-        std::cerr << "expected size " << input.size() << " but expect " << input_size << std::endl;
-        exit(1);
-    }
-
-    // Find max
+    /**
+     * Find max
+     */
     int max_value = 1;
     Max max;
 
@@ -43,7 +33,8 @@ int main () {
 
     if (max.size() == 0) {
         std::cerr << "All value is zero." << std::endl;
-        return 0;
+        std::map<std::string, Section> empty_section;
+        return empty_section;
     }
 
     // Find sections
@@ -54,7 +45,7 @@ int main () {
         Section section_upper(0);
         key_upper += std::to_string(index);
         section_upper.push_back(index);
-        if (index != input_size) {
+        if (index != input_size-1) {
             key_upper += std::to_string(index+1);
             section_upper.push_back(index+1);
         }
@@ -144,7 +135,6 @@ int main () {
     bool score_difficulty = false;
     std::map<std::string, Section> sections_scored_difficulty;
     for (auto iterator = sections_scored_component.begin(); iterator != sections_scored_component.end(); iterator++) {
-        std::cerr << score_difficulty << std::endl;
         Section section = iterator->second;
         int max = input_size - 1;
         bool score = true;
@@ -182,6 +172,66 @@ int main () {
         }
         std::cerr << "]" << std::endl;
     }
+
+    if (score_difficulty) return sections_scored_difficulty;
+
+    // score with distance from first or last
+    bool score_distance = 0;
+    std::map<std::string, Section> sections_scored_distance;
+
+    for (auto iterator = sections_scored_difficulty.begin(); iterator != sections_scored_difficulty.end(); iterator++) {
+        Section section = iterator->second;
+        int max = input_size - 1;
+        int score_first = 2;
+        int score_last = 2;
+
+        // score pairs that has case [0, x] or [1, x]
+        if (section[0] < 2) score_first = section[0];
+
+        // score pairs that has case [x, max] or [x, max-1]
+        if (max - 2 < section[1]) score_last = max - section[1];
+
+        int score = std::min(score_first, score_last);
+
+        if (score_distance > score) continue;
+        if (score > score_distance) {
+            score_distance = score;
+            sections_scored_distance.erase(sections_scored_distance.begin(), sections_scored_distance.end());
+        }
+        sections_scored_distance[iterator->first] = section;
+    }
+
+    std::cerr << "[!] Found " << sections_scored_distance.size() << " sections with longer distance from start or end" << std::endl;
+    for (auto iterator = sections_scored_distance.begin(); iterator != sections_scored_distance.end(); iterator++) {
+        Section section = iterator->second;
+        std::cerr << "  - [";
+        std::cerr << section[0] << "<" << input[section[0]] << ">";
+        if (section.size() > 1) {
+            std::cerr << ", " << section[1] << "<" << input[section[1]] << ">";
+        }
+        std::cerr << "]" << std::endl;
+    }
+
+    return sections_scored_distance;
+}
+
+int main () {
+    int input_size;
+    std::cin >> input_size;
+    Input input(0);
+
+    for (int i = 0; i < input_size; i++) {
+        int tmp;
+        std::cin >> tmp;
+        input.push_back(tmp);
+    }
+
+    if (input.size() != input_size) {
+        std::cerr << "expected size " << input.size() << " but expect " << input_size << std::endl;
+        exit(1);
+    }
+
+    get_great_sections(input);
 
     return 0;
 }
