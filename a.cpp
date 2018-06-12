@@ -11,6 +11,11 @@ typedef std::vector<int> Section;
 typedef std::map<int, int> ScoreResult;
 
 std::map<std::string, Section> get_great_sections (Input input) {
+    for (int a : input) {
+        std::cerr << a << ",";
+    }
+    std::cerr << std::endl;
+
     std::size_t input_size = input.size();
 
     /**
@@ -20,7 +25,13 @@ std::map<std::string, Section> get_great_sections (Input input) {
     Max max;
 
     for (int index = 0; index < input_size; index++) {
-        int value = input[index];
+        int value = 1;
+        if (index == 0 && index == input_size -1) {
+            if (input[index] == 0) value = 0;
+        }
+        if ((index != 0) && (index != input_size-1)) {
+            value = input[index];
+        }
         if (value < max_value) {
             continue;
         }
@@ -246,6 +257,7 @@ int main () {
     int cnt = 0;
 
     while (true) {
+        std::cerr << cnt << std::endl;
         auto section_map = get_great_sections(input);
         if (section_map.size() == 0) break;
         auto section = (*section_map.begin()).second;
