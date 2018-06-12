@@ -11,11 +11,6 @@ typedef std::vector<int> Section;
 typedef std::map<int, int> ScoreResult;
 
 std::map<std::string, Section> get_great_sections (Input input) {
-    for (int a : input) {
-        std::cerr << a << ",";
-    }
-    std::cerr << std::endl;
-
     std::size_t input_size = input.size();
 
     /**
@@ -264,7 +259,23 @@ int main () {
         }
         std::cerr << "cnt: " << cnt << std::endl;
 
-        auto section = (*section_map.begin()).second;
+        // select selection with weight about distance from start or end
+        int max_distance = -1;
+        Section section;
+        for (auto i = section_map.begin(); i != section_map.end(); i++) {
+            Section current_section = i->second;
+            int distance;
+            if (current_section.size() == 1) {
+                distance = std::min(current_section[0], input_size -1 -current_section[0]);
+            } else {
+                distance = std::min(current_section[0], input_size -1 -current_section[1]);
+            }
+            if (distance > max_distance) {
+                max_distance = distance;
+                section = current_section;
+            }
+        }
+
         if (section.size() == 1) {
             cnt += input[section[0]];
             input[section[0]] = 0;
