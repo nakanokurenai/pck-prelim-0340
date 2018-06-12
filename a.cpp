@@ -87,7 +87,7 @@ std::map<std::string, Section> get_great_sections (Input input) {
         if (input[section[0]] == 0) {
             score -= 1;
         }
-        if (size > 1 && input[section[1]] == 0) {
+        if (size > 1 && input[section[1]] == 0) {
             score -= 1;
         }
 
@@ -254,10 +254,15 @@ int main () {
             input[section[0]] = 0;
             continue;
         }
-        int remnum = std::min(input[section[0]], input[section[1]]);
-        cnt += remnum * 2;
-        input[section[0]] -= remnum;
-        input[section[1]] -= remnum;
+        int min = std::min(input[section[0]], input[section[1]]);
+        if (min != 0) {
+            cnt += min * 2;
+            input[section[0]] -= min;
+            input[section[1]] -= min;
+            continue;
+        }
+        cnt += min*2;
+        input[section[0]] = input[section[1]] = 0;
     }
 
     std::cout << cnt << std::endl;
