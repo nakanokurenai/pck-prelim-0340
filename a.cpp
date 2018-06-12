@@ -202,7 +202,8 @@ int main () {
             input[section[1]] -= min;
             continue;
         }
-        cnt += min*2;
+        int max = std::max(input[section[0]], input[section[1]]);
+        cnt += max*2;
         input[section[0]] = input[section[1]] = 0;
     }
 
