@@ -10,12 +10,6 @@ typedef std::vector<int> Input;
 typedef std::vector<int> Section;
 typedef std::map<int, int> ScoreResult;
 
-#if defined(DEBUG)
-#define debug std::cerr
-#else
-#define debug std::cerr.setstate(std::ios_base::badbit); std::cerr
-#endif
-
 std::map<std::string, Section> get_great_sections (Input input) {
     std::size_t input_size = input.size();
 
@@ -42,7 +36,6 @@ std::map<std::string, Section> get_great_sections (Input input) {
     }
 
     if (max.size() == 0) {
-        debug << "All value is zero." << std::endl;
         std::map<std::string, Section> empty_section;
         return empty_section;
     }
@@ -73,17 +66,6 @@ std::map<std::string, Section> get_great_sections (Input input) {
         sections[key_lower] = section_lower;
     }
 
-    debug << "[!] Found " << sections.size() << " sections" << std::endl;
-    for (auto iterator = sections.begin(); iterator != sections.end(); iterator++) {
-        Section section = iterator->second;
-        debug << "  - [";
-        debug << section[0] << "<" << input[section[0]] << ">";
-        if (section.size() > 1) {
-            debug << ", " << section[1] << "<" << input[section[1]] << ">";
-        }
-        debug << "]" << std::endl;
-    }
-
     /**
      * scores sections and get 
      */
@@ -111,18 +93,6 @@ std::map<std::string, Section> get_great_sections (Input input) {
         sections_zero_scored[iterator->first] = section;
     }
 
-    // show state
-    debug << "[!] Found " << sections_zero_scored.size() << " sections that has least zero" << std::endl;
-    for (auto iterator = sections_zero_scored.begin(); iterator != sections_zero_scored.end(); iterator++) {
-        Section section = iterator->second;
-        debug << "  - [";
-        debug << section[0] << "<" << input[section[0]] << ">";
-        if (section.size() > 1) {
-            debug << ", " << section[1] << "<" << input[section[1]] << ">";
-        }
-        debug << "]" << std::endl;
-    }
-
     // score with components
     int score_component = 1;
     std::map<std::string, Section> sections_scored_component;
@@ -138,17 +108,6 @@ std::map<std::string, Section> get_great_sections (Input input) {
             sections_scored_component.erase(sections_scored_component.begin(), sections_scored_component.end());
         }
         sections_scored_component[iterator->first] = section;
-    }
-
-    debug << "[!] Found " << sections_scored_component.size() << " sections that has maximum components" << std::endl;
-    for (auto iterator = sections_scored_component.begin(); iterator != sections_scored_component.end(); iterator++) {
-        Section section = iterator->second;
-        debug << "  - [";
-        debug << section[0] << "<" << input[section[0]] << ">";
-        if (section.size() > 1) {
-            debug << ", " << section[1] << "<" << input[section[1]] << ">";
-        }
-        debug << "]" << std::endl;
     }
 
     // score with difficulty to delete
@@ -182,17 +141,6 @@ std::map<std::string, Section> get_great_sections (Input input) {
         sections_scored_difficulty[iterator->first] = section;
     }   
 
-    debug << "[!] Found " << sections_scored_difficulty.size() << " sections with harder difficulty" << std::endl;
-    for (auto iterator = sections_scored_difficulty.begin(); iterator != sections_scored_difficulty.end(); iterator++) {
-        Section section = iterator->second;
-        debug << "  - [";
-        debug << section[0] << "<" << input[section[0]] << ">";
-        if (section.size() > 1) {
-            debug << ", " << section[1] << "<" << input[section[1]] << ">";
-        }
-        debug << "]" << std::endl;
-    }
-
     if (score_difficulty) return sections_scored_difficulty;
 
     // score with distance from first or last
@@ -221,19 +169,6 @@ std::map<std::string, Section> get_great_sections (Input input) {
         sections_scored_distance[iterator->first] = section;
     }
 
-    debug << "[!] Found " << sections_scored_distance.size() << " sections with longer distance from start or end" << std::endl;
-    for (auto iterator = sections_scored_distance.begin(); iterator != sections_scored_distance.end(); iterator++) {
-        Section section = iterator->second;
-        debug << "  - [";
-        debug << section[0] << "<" << input[section[0]] << ">";
-        if (section.size() > 1) {
-            debug << ", " << section[1] << "<" << input[section[1]] << ">";
-        }
-        debug << "]" << std::endl;
-    }
-
-    debug << std::endl;
-
     return sections_scored_distance;
 }
 
@@ -249,37 +184,44 @@ int main () {
     }
 
     if (input.size() != input_size) {
-        debug << "expected size " << input.size() << " but expect " << input_size << std::endl;
         exit(1);
     }
 
     int cnt = 0;
 
     while (true) {
-        for (int a : input) {
-            debug << a << ", " ;
-        }
-        debug << std::endl;
-
-        debug << cnt << std::endl;
         auto section_map = get_great_sections(input);
         if (section_map.size() == 0) break;
 
         // select selection with weight about distance from start or end
-        int max_distance = -1;
+        int side_zeros = 0;
         Section section;
         for (auto i = section_map.begin(); i != section_map.end(); i++) {
             Section current_section = i->second;
-            int distance;
+            int current = 0;
+
             if (current_section.size() == 1) {
-                distance = std::min(current_section[0], input_size -1 -current_section[0]);
+                if (current_section[0] == 0 && input[current_section[0]+1] == 0) {
+                    current += 1;
+                } else if (input[current_section[0]-1] == 0) {
+                    current += 1;
+                }
             } else {
-                distance = std::min(current_section[0], input_size -1 -current_section[1]);
+                if (current_section[0] != 0 && input[current_section[0]-1] == 0) {
+                    current += 1;
+                }
+                if (current_section[1] != input_size - 1 && input[current_section[1]+1] == 0) {
+                    current += 1;
+                }
             }
-            if (distance > max_distance) {
-                max_distance = distance;
+            if (current == side_zeros) {
                 section = current_section;
             }
+            if (current > side_zeros) {
+                side_zeros = current;
+                section = current_section;
+            }
+            if (current == 2) break;
         }
 
         if (section.size() == 1) {
